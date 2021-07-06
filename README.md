@@ -21,13 +21,16 @@ Runs an Amazon ECS task on ECS cluster.
 
 ```yaml
     - name: Run Task on Amazon ECS
-      uses: smitp/amazon-ecs-run-task@v1
+      uses: smitp/amazon-ecs-run-task@v2
       with:
         task-definition: task-definition.json
         cluster: my-cluster
         count: 1
         started-by: github-actions-${{ github.actor }}
         wait-for-finish: true
+        assign-public-ip: false
+        subnets: "subnet-0935204c7ed1812234,subnet-0315c020995612345,subnet-02ada32971b1234"
+        security-groups: "sg-02e6428822c4612345"
 ```
 
 See [action.yml](action.yml) for the full documentation for this action's inputs and outputs.

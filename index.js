@@ -87,11 +87,13 @@ async function run() {
     // Get inputs
     const taskDefinitionFile = core.getInput('task-definition', { required: true })
     const cluster = core.getInput('cluster', { required: false })
+    const launchType = core.getInput('launch-type', { required: false }) || "FARGATE"
     const count = core.getInput('count', { required: true })
     const startedBy = core.getInput('started-by', { required: false }) || agent
     const waitForFinish = core.getInput('wait-for-finish', { required: false }) || false
-    const subnets = core.getInput('subnets', { required: true })
-    const securityGroups = core.getInput('security-groups', { required: true })
+    const subnets = core.getInput('subnets', { required: false })
+    const securityGroups = core.getInput('security-groups', { required: false })
+    const assignPublicIp = core.getInput('assign-public-ip', { required: false }) == false ? false : true
     let waitForMinutes = parseInt(core.getInput('wait-for-minutes', { required: false })) || 30
     if (waitForMinutes > MAX_WAIT_MINUTES) {
       waitForMinutes = MAX_WAIT_MINUTES
@@ -119,27 +121,27 @@ async function run() {
 
     const clusterName = cluster ? cluster : 'default'
 
-    core.debug(`Running task with ${JSON.stringify({
+    const runTaskParams = {
       cluster: clusterName,
       taskDefinition: taskDefArn,
+      launchType: launchType,
       count: count,
       startedBy: startedBy
-    })}`)
+    }
 
-    const runTaskResponse = await ecs.runTask({
-      cluster: clusterName,
-      taskDefinition: taskDefArn,
-      launchType: 'FARGATE',
-      networkConfiguration: {
+    if (subnets || securityGroups) {
+      runTaskParams.networkConfiguration = {
         awsvpcConfiguration: {
-          assignPublicIp: 'ENABLED',
-          subnets: subnets.split(','),
-          securityGroups: securityGroups.split(',')
-        }
-      },
-      count: count,
-      startedBy: startedBy
-    }).promise()
+          assignPublicIp: assignPublicIp ? "ENABLED" : "DISABLED",
+          subnets: subnets.split(","),
+          securityGroups: securityGroups.split(","),
+        },
+      }
+    }
+
+    core.debug(`Running task with ${JSON.stringify(runTaskParams)}`)
+
+    const runTaskResponse = await ecs.runTask(runTaskParams).promise()
 
     core.debug(`Run task response ${JSON.stringify(runTaskResponse)}`)
 

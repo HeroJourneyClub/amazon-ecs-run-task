@@ -10,15 +10,23 @@ inputs:
   cluster:
     description: "The name of the ECS cluster. Will default to the 'default' cluster"
     required: true
+  launch-type:
+    description: "The  infrastructure  on  which to run your standalone task. EC2 | FARGATE | EXTERNAL"
+    default: "FARGATE"
+    required: false
   count:
     description: "The count of tasks to run. Will default to the 1"
     required: true
   subnets:
     description: "The subnets to allow this task to run in. Values should be comma separated without spaces"
-    required: true
+    required: false
   security-groups:
     description: "The security groups this task should run with. Values should be comma separated without spaces"
-    required: true
+    required: false
+  assign-public-ip:
+    description: "Whether  the task's elastic network interface receives a public IP address"
+    default: true
+    required: false
   started-by:
     description: "The value of the task started-by"
     required: false
